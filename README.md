@@ -63,9 +63,9 @@ https://www.paypal.com/donate/?business=CV5LLN6DKMGYC&no_recurring=0&currency_co
     *   Write flash banks A & B from a `.bin` file back to the controller ( **EXTREME CAUTION ADVISED**).
     *   View raw hex dump of flash banks A & B directly in the GUI.
     *   Probe flash memory pages with write-then-read tests.
-*   **Stick Center Calibration (Report 0xF1, Bank A, Offset 0x0020):**
-    *   View the 16-byte stick center calibration data segment.
-    *   Adjust individual bytes (B0-B7) of the primary 8-byte (16-byte for controllers that use 3 pin analog sticks) calibration data and write changes back to the controller.
+*   **Stick Center Calibration (Report 0xF1, Bank A, Offset `0x0020` / `0x0046` for 3-pin):**
+    *   View the stick center calibration data segment (`16` bytes for both 4-pin and 3-pin layouts).
+    *   Adjust individual bytes (B0-B7 for 4-pin, B0-B15 for 3-pin) of the calibration data and write changes back to the controller.
 *   **Controller Commands:**
     *   Send a restart command to the controller.
     *   Enable/Disable input report streaming (requires PS button press to activate streaming after enabling).
@@ -117,7 +117,7 @@ Custom command to write to the controller memory folow this paterns:
 *   **Flash Memory (0xF1):** The DS3 controller has internal flash memory storing calibration, pairing data, and firmware settings.
     *   **Dumping:** You can back up the controller's flash content. This is useful for analysis or safekeeping before making changes.
     *   **Flashing:** You can write data from a `.bin` file back to the controller. **This is extremely risky and can brick your controller if incorrect data is written.** Only proceed if you know exactly what you are doing and have a valid dump.
-*   **Stick Center Calibration (0xF1, Bank A, Offset 0x0020):** The first 8 bytes at flash address `0x0020` in Bank A store the center calibration values for the analog sticks (LX LSB, LX MSB, LY LSB, ..., RY MSB). The following 8 bytes are related suffix/checksum data. This tool allows direct modification of the primary 8 bytes.
+*   **Stick Center Calibration (0xF1, Bank A, Offset `0x0020` / `0x0046` for 3-pin):** For 4-pin sticks, the first 8 bytes at flash address `0x0020` in Bank A store the center calibration values for the analog sticks (LX LSB, LX MSB, LY LSB, ..., RY MSB), and the following 8 bytes are related suffix/checksum data. For 3-pin sticks, the app now treats the calibration block at `0x0046` as a full 16-byte editable segment, exposing bytes `0-15` in the UI.
     *   Changes are written directly to the controller's flash. Adjust small amounts and test.
     *   **Caution:** Incorrect values can make sticks unusable. Always back up your flash first.
 *   **Bluetooth Pairing (0xF5):** Report `0xF5` is used to set the Bluetooth MAC address of the host PC that the controller should pair with.
