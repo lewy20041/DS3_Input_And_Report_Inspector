@@ -157,15 +157,57 @@ ACCEL_SENSITIVITY_LSB_PER_G: float = 35583.0
 
 GYRO_SENSITIVITY_LSB_PER_DPS: float = 14.31
 
+def detect_darkmode_in_macos():
+    # https://stackoverflow.com/a/65357166/3710743
+    """Checks DARK/LIGHT mode of macos."""
+    try:
+        import subprocess
+        cmd = 'defaults read -g AppleInterfaceStyle'
+        p = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True
+        )
+        output, _ = p.communicate()
+        return bool(output.strip())
+    except Exception:
+        return False
+
+def detect_darkmode_in_windows():
+    # https://stackoverflow.com/a/65349866/3710743
+    try:
+        import winreg
+        registry = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
+        reg_keypath = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+        reg_key = winreg.OpenKey(registry, reg_keypath)
+
+        for i in range(1024):
+            value_name, value, _ = winreg.EnumValue(reg_key, i)
+            if value_name == 'AppsUseLightTheme':
+                return value == 0
+    except Exception:
+        return False
+    return False
+
+def detect_darkmode():
+    if sys.platform.startswith("win"):
+        return detect_darkmode_in_windows()
+    elif sys.platform == "darwin":
+        return detect_darkmode_in_macos()
+    return False
+
+IS_DARK_MODE: bool = detect_darkmode()
+
 GYRO_AXES: List[Tuple[str, str, str]] = [
-    ("Pitch", "pitch_dps", "blue"),
-    ("Yaw",   "yaw_dps",   "red"),
-    ("Roll",  "roll_dps",  "orange")
+    ("Pitch", "pitch_dps", "lightblue" if IS_DARK_MODE else "blue"),
+    ("Yaw",   "yaw_dps",   "indianred1" if IS_DARK_MODE else "red"),
+    ("Roll",  "roll_dps",  "peachpuff" if IS_DARK_MODE else "orange")
 ]
 ACCEL_AXES: List[Tuple[str, str, str]] = [
-    ("X", "display_ax_ms2", "blue"),
-    ("Y", "display_ay_ms2", "red"),
-    ("Z", "display_az_ms2", "orange")
+    ("X", "display_ax_ms2", "lightblue" if IS_DARK_MODE else "blue"),
+    ("Y", "display_ay_ms2", "indianred1" if IS_DARK_MODE else "red"),
+    ("Z", "display_az_ms2", "peachpuff" if IS_DARK_MODE else "orange")
 ]
 
 PHYSICAL_TO_TARGET_ACCEL_MAP: Dict[str, str] = {
@@ -809,7 +851,7 @@ def _update_stick_calib_ui_elements():
         info_label_3pin = ttk.Label(
             stick_calib_frame,
             text="For 3-pin sticks, controller restart is required for calibration changes to take effect.",
-            foreground="red",
+            foreground=("indianred1" if IS_DARK_MODE else "red"),
             wraplength=stick_calib_frame.winfo_width() - 20
         )
         info_label_3pin.grid(row=current_row_offset, column=0, columnspan=4, sticky="ew", padx=5, pady=(5,10))
